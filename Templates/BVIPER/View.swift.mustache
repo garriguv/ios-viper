@@ -1,0 +1,10 @@
+import Foundation
+import UIKit
+
+protocol {{module}}Viewing: class {
+    var presenter: {{module}}Presenting! { get set }
+}
+
+class {{module}}View: {{type}}, {{module}}Viewing {
+    var presenter: {{module}}Presenting!
+}

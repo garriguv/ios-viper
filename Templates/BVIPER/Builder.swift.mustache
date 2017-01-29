@@ -1,0 +1,27 @@
+import Foundation
+import UIKit
+
+protocol {{module}}Delegate: class {
+}
+
+protocol {{module}}Building: class {
+    associatedtype Delegate: {{module}}Delegate
+
+    func makeModule(delegate: Delegate?) -> {{type}}
+}
+
+class {{module}}Builder: {{module}}Building {
+    func makeModule(delegate: Delegate?) -> {{type}} {
+        let router = {{module}}Router(delegate: delegate)
+        let interactor = {{module}}Interactor()
+        let presenter = {{module}}Presenter(router: router, interactor: interactor)
+        let view = {{module}}View()
+
+        view.presenter = presenter
+        presenter.view = view
+
+        interactor.delegate = presenter
+
+        return view
+    }
+}
