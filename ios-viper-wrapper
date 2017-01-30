@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# ios-viper
+# A wrapper script for invoking ios-viper with docker
+# Put this script in $PATH as `ios-viper`
+
+VERSION="v0.1.0"
+
+# Set up mounted volumes, environment, and run our containerized command
+exec docker run \
+  -v $(pwd):$(pwd) \
+  -w $(pwd) \
+  -ti \
+  "garriguv/ios-viper:$VERSION" "$@"
