@@ -11,38 +11,44 @@ class Generator {
     case BVIPER(name: String, viewType: String)
   }
 
-  private let module: ModuleType
-  private let directory: Folder
-  private let templates: TemplateRepository
+  private let templates: Folder
 
-  init(module: ModuleType, directory: Folder, templates: Folder) throws {
-    self.module = module
-    self.directory = directory
-    self.templates = TemplateRepository(directoryPath: templates.path)
+  init(templates: Folder) throws {
+    self.templates = templates
   }
 
-  func generate() throws {
+  func generate(module: ModuleType, directory: Folder) throws {
     switch module {
     case .BVIPER(name: let name, viewType: let view):
       let data = [
         "module": name,
         "type": view
       ]
-      try generate(module: name, templateName: "Builder.swift", withData: data)
-      try generate(module: name, templateName: "Interactor.swift", withData: data)
-      try generate(module: name, templateName: "Presenter.swift", withData: data)
-      try generate(module: name, templateName: "Router.swift", withData: data)
-      try generate(module: name, templateName: "View.swift", withData: data)
-      try generate(module: name, templateName: "ViewModel.swift", withData: data)
+      let templates = try self.templates(module: module)
+      try templates.forEach { (templateName, template) in
+        let rendering = try template.render(with: Box(data))
+        guard let renderingData = rendering.data(using: .utf8) else {
+          throw GeneratorError.emptyRendering(name: templateName, data: data)
+        }
+        try directory.createFile(named: "\(name)\(templateName)", contents: renderingData)
+      }
     }
   }
 
-  private func generate(module: String, templateName name: String, withData data: [String: Any]) throws {
-    let template = try templates.template(named: name)
-    let rendering = try template.render(with: Box(data))
-    guard let renderingData = rendering.data(using: .utf8) else {
-      throw GeneratorError.emptyRendering(name: name, data: data)
+  private func templates(module: ModuleType) throws -> [(String, Template)] {
+    switch module {
+    case .BVIPER:
+      let repository = TemplateRepository(directoryPath: try templates.subfolder(named: "BVIPER").path)
+      return try [
+        "Builder.swift",
+        "Interactor.swift",
+        "Presenter.swift",
+        "Router.swift",
+        "View.swift",
+        "ViewModel.swift"
+        ].map {
+          ($0, try repository.template(named: $0))
+      }
     }
-    try directory.createFile(named: "\(module)\(name)", contents: renderingData)
   }
 }
