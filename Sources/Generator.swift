@@ -30,7 +30,8 @@ class Generator {
         guard let renderingData = rendering.data(using: .utf8) else {
           throw GeneratorError.emptyRendering(name: templateName, data: data)
         }
-        try directory.createFile(named: "\(name)\(templateName)", contents: renderingData)
+        let file = try directory.createFile(named: "\(name)\(templateName)", contents: renderingData)
+        print("\(file.path)")
       }
     }
   }
