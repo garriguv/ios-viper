@@ -10,7 +10,7 @@ protocol {{module}}Building: class {
     func makeModule(delegate: Delegate?) -> {{type}}
 }
 
-class {{module}}Builder: {{module}}Building {
+class {{module}}Builder<Delegate: {{module}}Delegate>: {{module}}Building {
     func makeModule(delegate: Delegate?) -> {{type}} {
         let router = {{module}}Router(delegate: delegate)
         let interactor = {{module}}Interactor()
