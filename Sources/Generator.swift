@@ -8,7 +8,7 @@ enum GeneratorError: Error {
 
 class Generator {
   enum ModuleType {
-    case BVIPER(name: String, viewType: String)
+    case BVIPER(module: String, type: String)
   }
 
   private let templates: Folder
@@ -19,10 +19,10 @@ class Generator {
 
   func generate(module: ModuleType, directory: Folder) throws {
     switch module {
-    case .BVIPER(name: let name, viewType: let view):
+    case .BVIPER(module: let moduleName, type: let type):
       let data = [
-        "module": name,
-        "type": view
+        "module": moduleName,
+        "type": type
       ]
       let templates = try self.templates(module: module)
       try templates.forEach { (templateName, template) in
@@ -30,7 +30,7 @@ class Generator {
         guard let renderingData = rendering.data(using: .utf8) else {
           throw GeneratorError.emptyRendering(name: templateName, data: data)
         }
-        let file = try directory.createFile(named: "\(name)\(templateName)", contents: renderingData)
+        let file = try directory.createFile(named: "\(moduleName)\(templateName)", contents: renderingData)
         print("\(file.path)")
       }
     }
