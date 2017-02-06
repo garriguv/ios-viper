@@ -1,55 +1,56 @@
 import Foundation
 import Files
-import Mustache
+import Stencil
+import PathKit
 
 enum GeneratorError: Error {
-  case emptyRendering(name: String, data: [String: Any])
+    case emptyRendering(name: String, data: [String: Any])
 }
 
 class Generator {
-  enum ModuleType {
-    case BVIPER(module: String, type: String)
-  }
+    enum ModuleType {
+        case BVIPER(module: String, type: String)
+    }
 
-  private let templates: Folder
+    private let templates: String
 
-  init(templates: Folder) throws {
-    self.templates = templates
-  }
+    init(templates: String) throws {
+        self.templates = templates
+    }
 
-  func generate(module: ModuleType, directory: Folder) throws {
-    switch module {
-    case .BVIPER(module: let moduleName, type: let type):
-      let data = [
-        "module": moduleName,
-        "type": type
-      ]
-      let templates = try self.templates(module: module)
-      try templates.forEach { (templateName, template) in
-        let rendering = try template.render(with: Box(data))
-        guard let renderingData = rendering.data(using: .utf8) else {
-          throw GeneratorError.emptyRendering(name: templateName, data: data)
+    func generate(module: ModuleType, directory: Folder) throws {
+        switch module {
+        case .BVIPER(module: let moduleName, type: let type):
+            let context = Context(dictionary: [
+                "module": moduleName,
+                "type": type
+                ])
+            let templates = try self.templates(module: module)
+            try templates.forEach { (templateName, template) in
+                let rendering = try template.render(context)
+                guard let renderingData = rendering.data(using: .utf8) else {
+                    throw GeneratorError.emptyRendering(name: templateName, data: context.flatten())
+                }
+                let file = try directory.createFile(named: "\(moduleName)\(templateName)", contents: renderingData)
+                print("\(file.path)")
+            }
         }
-        let file = try directory.createFile(named: "\(moduleName)\(templateName)", contents: renderingData)
-        print("\(file.path)")
-      }
     }
-  }
 
-  private func templates(module: ModuleType) throws -> [(String, Template)] {
-    switch module {
-    case .BVIPER:
-      let repository = TemplateRepository(directoryPath: try templates.subfolder(named: "BVIPER").path)
-      return try [
-        "Builder.swift",
-        "Interactor.swift",
-        "Presenter.swift",
-        "Router.swift",
-        "View.swift",
-        "ViewModel.swift"
-        ].map {
-          ($0, try repository.template(named: $0))
-      }
+    private func templates(module: ModuleType) throws -> [(String, Template)] {
+        switch module {
+        case .BVIPER:
+            let loader = FileSystemLoader(paths: [Path(templates) + Path("BVIPER")])
+            return try [
+                "Builder.swift",
+                "Interactor.swift",
+                "Presenter.swift",
+                "Router.swift",
+                "View.swift",
+                "ViewModel.swift"
+                ].map {
+                    ($0, try loader.loadTemplate(name: $0)!)
+            }
+        }
     }
-  }
 }

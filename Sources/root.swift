@@ -30,7 +30,7 @@ private func execute(flags: Flags, args: [String]) {
     }
 
     do {
-        let generator = try Generator(templates: try Folder(path: templatesPath))
+        let generator = try Generator(templates: templatesPath)
         try generator.generate(module: .BVIPER(module: module, type: type), directory: try Folder(path: directory))
     } catch {
         rootCommand.fail(statusCode: 1, errorMessage: "\(error)")
