@@ -1,17 +1,15 @@
 import Foundation
 import UIKit
 
-protocol {{module}}Delegate: class {
+public protocol {{module}}Delegate: class {
 }
 
-protocol {{module}}Building: class {
-    associatedtype Delegate: {{module}}Delegate
-
-    func makeModule(delegate: Delegate?) -> {{type}}
+public protocol {{module}}Building: class {
+    func makeModule(delegate: {{module}}Delegate?) -> {{type}}
 }
 
-class {{module}}Builder<Delegate: {{module}}Delegate>: {{module}}Building {
-    func makeModule(delegate: Delegate?) -> {{type}} {
+public class {{module}}Builder: {{module}}Building {
+    public func makeModule(delegate: {{module}}Delegate?) -> {{type}} {
         let router = {{module}}Router(delegate: delegate)
         let interactor = {{module}}Interactor()
         let presenter = {{module}}Presenter(router: router, interactor: interactor)
